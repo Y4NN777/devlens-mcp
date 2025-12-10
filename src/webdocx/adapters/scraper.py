@@ -13,7 +13,7 @@ from webdocx.models.errors import ScrapingError
 
 
 class ScraperAdapter:
-    """Adapter for web scraping."""
+    """Adapter for web scraping using crawl4ai with httpx fallback."""
 
     def __init__(self, timeout: float = 30.0):
         """Initialize scraper adapter.
@@ -23,11 +23,14 @@ class ScraperAdapter:
         """
         self._timeout = timeout
         self._headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; WebDocx/1.0; +https://github.com/Y4NN777/webdocx-mcp)"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }
+        self._crawl4ai_available = True
 
     async def fetch(self, url: str) -> Document:
         """Fetch and parse a URL into a Document.
+
+        Uses crawl4ai for JS-heavy pages, falls back to httpx+readability.
 
         Args:
             url: URL to fetch.
@@ -41,6 +44,66 @@ class ScraperAdapter:
         if not url.strip():
             raise ScrapingError(url, "URL cannot be empty")
 
+        # Try crawl4ai first for better JS support
+        if self._crawl4ai_available:
+            try:
+                return await self._fetch_with_crawl4ai(url)
+            except Exception:
+                # Fall back to httpx if crawl4ai fails
+                pass
+
+        # Fallback to httpx + readability
+        return await self._fetch_with_httpx(url)
+
+    async def _fetch_with_crawl4ai(self, url: str) -> Document:
+        """Fetch using crawl4ai (handles JavaScript).
+
+        Args:
+            url: URL to fetch.
+
+        Returns:
+            Document with markdown content.
+        """
+        from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
+
+        browser_config = BrowserConfig(
+            headless=True,
+            verbose=False,
+        )
+
+        run_config = CrawlerRunConfig(
+            wait_until="domcontentloaded",
+            page_timeout=int(self._timeout * 1000),
+        )
+
+        async with AsyncWebCrawler(config=browser_config) as crawler:
+            result = await crawler.arun(url=url, config=run_config)
+
+            if not result.success:
+                raise ScrapingError(url, result.error_message or "Crawl failed")
+
+            title = result.metadata.get("title", "") if result.metadata else ""
+            content = result.markdown or ""
+
+            # Add source attribution
+            markdown = f"# {title}\n\n> Source: {url}\n\n{content}"
+
+            return Document(
+                url=url,
+                title=title,
+                content=markdown,
+                fetched_at=datetime.now(),
+            )
+
+    async def _fetch_with_httpx(self, url: str) -> Document:
+        """Fetch using httpx + readability (fallback for static pages).
+
+        Args:
+            url: URL to fetch.
+
+        Returns:
+            Document with markdown content.
+        """
         try:
             async with httpx.AsyncClient(timeout=self._timeout, follow_redirects=True) as client:
                 response = await client.get(url, headers=self._headers)
@@ -84,6 +147,51 @@ class ScraperAdapter:
         Raises:
             ScrapingError: If fetching or parsing fails.
         """
+        # Use crawl4ai for better JS support
+        if self._crawl4ai_available:
+            try:
+                return await self._summarize_with_crawl4ai(url)
+            except Exception:
+                pass
+
+        # Fallback
+        return await self._summarize_with_httpx(url)
+
+    async def _summarize_with_crawl4ai(self, url: str) -> PageSummary:
+        """Summarize using crawl4ai."""
+        from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
+
+        browser_config = BrowserConfig(headless=True, verbose=False)
+        run_config = CrawlerRunConfig(
+            wait_until="domcontentloaded",
+            page_timeout=int(self._timeout * 1000),
+        )
+
+        async with AsyncWebCrawler(config=browser_config) as crawler:
+            result = await crawler.arun(url=url, config=run_config)
+
+            if not result.success:
+                raise ScrapingError(url, result.error_message or "Crawl failed")
+
+            title = result.metadata.get("title", "") if result.metadata else ""
+            html = result.html or ""
+
+            soup = BeautifulSoup(html, "html.parser")
+            sections: list[Section] = []
+
+            for heading in soup.find_all(["h1", "h2", "h3"]):
+                text = heading.get_text(strip=True)
+                if text:
+                    summary = ""
+                    next_elem = heading.find_next_sibling(["p", "div"])
+                    if next_elem:
+                        summary = next_elem.get_text(strip=True)[:200]
+                    sections.append(Section(heading=text, summary=summary))
+
+            return PageSummary(url=url, title=title, sections=sections)
+
+    async def _summarize_with_httpx(self, url: str) -> PageSummary:
+        """Summarize using httpx (fallback)."""
         try:
             async with httpx.AsyncClient(timeout=self._timeout, follow_redirects=True) as client:
                 response = await client.get(url, headers=self._headers)
@@ -92,16 +200,13 @@ class ScraperAdapter:
 
             soup = BeautifulSoup(html, "html.parser")
 
-            # Extract title
             title_tag = soup.find("title")
             title = title_tag.get_text(strip=True) if title_tag else ""
 
-            # Extract headings as sections
             sections: list[Section] = []
             for heading in soup.find_all(["h1", "h2", "h3"]):
                 text = heading.get_text(strip=True)
                 if text:
-                    # Get next sibling paragraph as summary if exists
                     summary = ""
                     next_elem = heading.find_next_sibling(["p", "div"])
                     if next_elem:
@@ -118,46 +223,32 @@ class ScraperAdapter:
             raise ScrapingError(url, str(e)) from e
 
     def _html_to_markdown(self, html: str) -> str:
-        """Convert HTML to basic markdown.
-
-        Args:
-            html: HTML content.
-
-        Returns:
-            Markdown-formatted text.
-        """
+        """Convert HTML to basic markdown."""
         soup = BeautifulSoup(html, "html.parser")
 
-        # Remove script and style elements
         for elem in soup(["script", "style", "nav", "footer", "header"]):
             elem.decompose()
 
-        # Convert headings
         for i, tag in enumerate(["h1", "h2", "h3", "h4", "h5", "h6"]):
             for heading in soup.find_all(tag):
                 prefix = "#" * (i + 1)
                 heading.replace_with(f"\n\n{prefix} {heading.get_text(strip=True)}\n\n")
 
-        # Convert links
         for link in soup.find_all("a"):
             href = link.get("href", "")
             text = link.get_text(strip=True)
             if href and text:
                 link.replace_with(f"[{text}]({href})")
 
-        # Convert bold/strong
         for tag in soup.find_all(["strong", "b"]):
             tag.replace_with(f"**{tag.get_text(strip=True)}**")
 
-        # Convert italic/em
         for tag in soup.find_all(["em", "i"]):
             tag.replace_with(f"*{tag.get_text(strip=True)}*")
 
-        # Convert code
         for tag in soup.find_all("code"):
             tag.replace_with(f"`{tag.get_text(strip=True)}`")
 
-        # Convert lists
         for ul in soup.find_all("ul"):
             items = ul.find_all("li")
             md_list = "\n".join(f"- {li.get_text(strip=True)}" for li in items)
@@ -168,25 +259,14 @@ class ScraperAdapter:
             md_list = "\n".join(f"{i+1}. {li.get_text(strip=True)}" for i, li in enumerate(items))
             ol.replace_with(f"\n{md_list}\n")
 
-        # Get text and clean up
         text = soup.get_text()
-
-        # Clean up whitespace
         text = re.sub(r"\n{3,}", "\n\n", text)
         text = re.sub(r" {2,}", " ", text)
 
         return text.strip()
 
     def get_same_domain_links(self, html: str, base_url: str) -> list[str]:
-        """Extract same-domain links from HTML.
-
-        Args:
-            html: HTML content.
-            base_url: Base URL for resolving relative links.
-
-        Returns:
-            List of absolute URLs on the same domain.
-        """
+        """Extract same-domain links from HTML."""
         soup = BeautifulSoup(html, "html.parser")
         base_domain = urlparse(base_url).netloc
 
@@ -196,13 +276,11 @@ class ScraperAdapter:
             absolute_url = urljoin(base_url, href)
             parsed = urlparse(absolute_url)
 
-            # Same domain, http(s), no fragments/anchors only
             if (
                 parsed.netloc == base_domain
                 and parsed.scheme in ("http", "https")
-                and parsed.path  # Has a path
+                and parsed.path
             ):
-                # Remove fragment
                 clean_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
                 if clean_url not in links:
                     links.append(clean_url)
