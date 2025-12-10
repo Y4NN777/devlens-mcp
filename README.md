@@ -4,7 +4,8 @@ A simple MCP server built to give my LLMs and AI agents real-time web access. Se
 
 ## Why?
 
-I got tired of copy-pasting URLs and manually feeding web content to Claude or leaving my editor to read docs and understand docs ( favorite pain points ). This server lets the LLM fetch what it needs directly.
+I got tired of copy-pasting URLs and manually feeding web content to Claude or leaving my editor to read docs and understand docs ( favorite pain points ). This server lets the LLM fetch what it needs directly based on given prompts
+
 
 ## Tools
 
