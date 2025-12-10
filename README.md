@@ -1,117 +1,284 @@
-# WebDocx MCP
+# **DevLens MCP**
 
-Production-grade MCP server for intelligent web research. Built with developer velocity and LLM efficiency in mind.
+**The MCP Server I Built to Kill Alt-Tab. Clean, fast web context, right in your IDE.**
 
-Twelve tools in three layers: composable primitives, workflow combinators, and smart orchestration.
+Like most developers, I was sick of context-switching between VS Code and the browser for documentation. That was my core frustration. So, I built DevLens: an **open-source** MCP server because I was curious and wanted a **custom solution** that was more efficient than existing tools.
 
-## Why
+The goal is simple: give your workspace AI (Copilot, Claude, etc.) web access that is **structured** and **token-efficient**. DevLens delivers twelve specialized tools via a three-layered architecture built for power and easy deployment.
 
-Your AI assistant can't browse the web. WebDocx fixes that through MCP protocol. 
+## **What is MCP and DevLens's Role?**
 
-**Developer-first design**: Small focused tools that combine powerfully, smart auto-orchestration to reduce cognitive load, Markdown output optimized for token economy, and zero configuration to start.
+The **MCP (Model Context Protocol)** is the standard that lets your AI assistant call external tools (web search, scraping) to act beyond its training data. It gives the AI real-world power.
 
-Works with Claude Desktop, VS Code Copilot, or any MCP-compatible client.
+**DevLens's Role** is to be the most efficient implementation for web research. DevLens handles the intelligence (Smart Orchestration) and formats the results into clean Markdown. This ensures your workspace AI receives the precise context it needs without the clutter or high token cost of raw HTML.
 
-## Tools
+## **Why DevLens (Solving the Flow Problem)**
 
-### Core Research
-**search_web** — DuckDuckGo search with region/filter support  
-**scrape_url** — Extract page content as Markdown (optional metadata)  
-**crawl_docs** — Multi-page documentation crawling (smart filtering)  
-**deep_dive** — Multi-source research with parallel fetching  
-**summarize_page** — Quick page structure overview  
+DevLens is built on two principles to solve context loss: **Technical Composability** and **Token Efficiency**.
 
-### Analysis
-**compare_sources** — Analyze multiple sources for consensus/differences  
-**find_related** — Discover related pages via content analysis  
-**extract_links** — Categorize internal/external links  
-**monitor_changes** — Track page updates via content hashing
+### **Built for the Developer Workflow**
 
-### Smart Orchestration
-**suggest_workflow** — Auto-recommend optimal research workflow  
-**classify_research_intent** — Detect research goal with confidence scores  
-**get_server_docs** — Inline documentation (overview, tools, workflows, philosophy)
+* **The Problem Solved:** No more useless switching between browser and editor. Your coding flow stays intact.  
+* **The Technical Edge:** Our layered architecture uses simple primitives that combine powerfully. This means more precise and less costly workflows than existing "monolithic" solutions.  
+* **LLM Context Optimal:** Our clean, token-optimized Markdown output is about **70% smaller** than raw HTML. This is the secret for fast, accurate AI results in your chat.  
+* **Seamless IDE Integration:** Designed to pair perfectly with **VS Code Copilot and GitHub Copilot**. Web research is injected directly into your editor.  
+* **Deployment Ready:** Use it locally for your own work, or deploy it on a server to share with others.  
+* **Smart Orchestration** — The system chooses the best tool sequence, automatically.  
+* **Zero Configuration** — Install, run. Done.
 
-## Setup
+### **Developer Personas & Use Cases**
 
-### Prerequisites
+| Persona | Problem Solved (The Pain) | DevLens Solution (The Win) |
+| :---- | :---- | :---- |
+| **Nina, the Frontend Developer** | Needs a quick fix (e.g., that one CORS config snippet) but hates opening 5 Stack Overflow tabs. | Uses suggest\_workflow or search\_web \+ summarize\_page to get the validated code snippet instantly in chat. Flow maintained. |
+| **Kenji, the Staff Engineer** | Must compare three serverless vendors for an architecture decision. Needs a single, definitive data dump. | Uses deep\_dive to fetch, aggregate, and analyze complex data concurrently. The LLM receives the full, pre-processed report. |
+| **Sarah, the DevOps Specialist** | Has to manually check third-party deployment guides every week for silent, breaking changes. | Uses monitor\_changes to passively track content hashes on critical docs, sending an alert only when something actually changes. |
 
-- Python 3.12 or higher
-- [uv](https://github.com/astral-sh/uv) package manager
+## **Tools**
 
-### Installation
+DevLens gives you **12 specialized tools**—think of it like a camera bag of lenses. Pick one, or let the smart system auto-select:
 
-```bash
-# Clone the repository
-git clone https://github.com/Y4NN777/webdocx-mcp.git
-cd webdocx-mcp
+| Layer | Metaphor | Focus | Tools |
+| :---- | :---- | :---- | :---- |
+| **Primitives** | *Basic Lenses* | Precision & Reliability | search\_web, scrape\_url, crawl\_docs, summarize\_page, extract\_links |
+| **Composed** | *Multi-Lens Systems* | Convenience & Aggregation | deep\_dive, compare\_sources, find\_related, monitor\_changes |
+| **Meta** | *Auto-Focus Intelligence* | Guidance & Optimization | suggest\_workflow, classify\_research\_intent, get\_server\_docs |
 
-# Install dependencies
+## **Quick Start (Seriously, It's Fast)**
+
+### **Prerequisites**
+
+* Python 3.12 or newer  
+* uv package manager
+
+### **Installation**
+
+\# Clone the repository  
+git clone \[https://github.com/Y4NN777/devlens-mcp.git\](https://github.com/Y4NN777/devlens-mcp.git)  
+cd devlens-mcp
+
+\# Install dependencies  
 uv sync
 
-# Run the server (STDIO mode)
-uv run python -m webdocx.server
+\# Run the server (STDIO mode)  
+uv run python \-m devlens.server
 
-# Test locally
-uv run python test_benchmark.py
-```
+### **Configuration du client MCP**
 
-### MCP Client Configuration
+#### **Claude Desktop**
 
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json` or `~/.config/claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "webdocx": {
-      "command": "uv",
-      "args": ["run", "python", "-m", "webdocx.server"],
-      "cwd": "/path/to/webdocx-mcp"
-    }
-  }
+Add this to claude\_desktop\_config.json:
+
+* macOS: \~/Library/Application Support/Claude/claude\_desktop\_config.json  
+* Linux: \~/.config/claude/claude\_desktop\_config.json  
+* Windows: %APPDATA%\\Claude\\claude\_desktop\_config.json
+
+{  
+  "mcpServers": {  
+    "devlens": {  
+      "command": "uv",  
+      "args": \["run", "python", "-m", "devlens.server"\],  
+      "cwd": "/absolute/path/to/devlens-mcp"  
+    }  
+  }  
 }
-```
 
-**VS Code Copilot** (`.vscode/mcp.json` in workspace):
-```json
-{
-  "servers": {
-    "webdocx": {
-      "command": "/path/to/webdocx-mcp/launch_mcp.sh"
-    }
-  }
+#### **VS Code Copilot**
+
+Create .vscode/mcp.json in your workspace:
+
+{  
+  "servers": {  
+    "devlens": {  
+      "command": "/absolute/path/to/devlens-mcp/launch\_mcp.sh"  
+    }  
+  }  
 }
-```
 
-**Other MCP Clients**: Use STDIO transport with `uv run python -m webdocx.server`
+#### **Autres clients MCP**
 
-## Library Stack
+Use STDIO transport: uv run python \-m devlens.server
 
-- `fastmcp` — MCP server framework
-- `crawl4ai` — Web scraping with JavaScript support
-- `ddgs` — Search (DuckDuckGo)
-- `httpx` — HTTP client with fallback
-- `pydantic` — Validation
+### **Verify Installation**
 
-## Features
+\# Run validation tests  
+uv run python test\_benchmark.py
 
-**Enhanced Scraping**
-- Metadata extraction (+41% information density)
-- Exponential backoff retry (handles flaky networks)
-- Multi-source comparison analysis
-- Region-specific search results
-- Parallel content fetching (3x faster)
-- Content change detection
+\# Test orchestration system  
+uv run python test\_orchestration.py
 
-**Smart Orchestration**
-- Intent classification (7 research patterns)
-- Dynamic workflow generation
-- Context-aware parameter optimization
-- Fallback strategies & parallel execution
-- Resource cost estimation (fast/medium/slow)
+\# See live demos  
+uv run python demo\_orchestration.py
 
-## Docs
+## **Usage Examples**
 
-- [Requirements](docs/REQUIREMENTS.md) — Scope and tech stack
-- [Architecture](docs/ARCHITECTURE.md) — How it works
-- [Tools Reference](docs/TOOLS.md) — Detailed tool usage
+### **Manual Tool Usage**
 
+\# Simple search  
+search\_web("FastAPI tutorial", limit=5)
+
+\# Scrape with metadata  
+scrape\_url("\[https://docs.python.org\](https://docs.python.org)", include\_metadata=true)
+
+\# Multi-source research  
+deep\_dive("Python async best practices", depth=5, parallel=true)
+
+\# Compare perspectives  
+compare\_sources("FastAPI vs Flask", \["url1", "url2"\])
+
+### **Smart Orchestration**
+
+\# Let DevLens recommend the workflow  
+suggest\_workflow("How to integrate payment API in Burkina Faso?")
+
+\# Returns:  
+\# \- Primary intent: quick\_answer (50% confidence)  
+\# \- Workflow: \[search\_web(limit=3), scrape\_url\]  
+\# \- Suggested parameters optimized for intent  
+\# \- Fallback strategies if tools fail
+
+### **With Context**
+
+\# Provide known URLs to skip search  
+context \= ResearchContext(known\_urls=\["\[https://docs.stripe.com\](https://docs.stripe.com)"\])  
+suggest\_workflow("Stripe payment integration guide", context)
+
+\# DevLens adapts:  
+\# \- Skips search (URLs already known)  
+\# \- Goes straight to crawl\_docs or scrape\_url  
+\# \- Optimizes parameters based on intent
+
+## **Architecture**
+
+DevLens uses a simple, effective layered architecture—the smart bits guide the reliable bits.
+
+* **Meta Layer** (Intelligence) \-\> suggests workflows  
+* **Composed Layer** (Convenience) \-\> combines primitives  
+* **Primitive Layer** (Reliability) \-\> uses adapters  
+* **External Services** (The Actual Internet)
+
+**Key Design Principles:**
+
+* **Composability** — Tiny tools that handle huge tasks.  
+* **Intelligence at the Edges** — Smart brain decides, reliable primitives execute.  
+* **Token Optimization** — Maximum context, minimum token cost.  
+* **Fail Explicitly** — No silent failures. We tell you exactly what broke.  
+* **Developer Velocity First** — If it doesn't make you faster, we don't build it.
+
+See ARCHITECTURE.md for the deep dive.
+
+### **Library Stack (The Ingredients)**
+
+| Layer | Library | Purpose | Framework |
+| :---- | :---- | :---- | :---- |
+| MCP | fastmcp | MCP protocol implementation |  |
+| Scraping | crawl4ai | JavaScript-enabled web scraping |  |
+| Search | ddgs | DuckDuckGo search (no API key) |  |
+| HTTP | httpx | Fallback HTTP client |  |
+| Validation | pydantic | Input/output schemas |  |
+
+## **Features**
+
+### **Intelligent Scraping**
+
+* Exponential backoff retry (because the internet is flaky)  
+* Metadata extraction (+41% information density)  
+* Smart filtering (skips all the login/signup/spam garbage)  
+* Markdown conversion (clean text for the AI)  
+* Content change detection via hashing
+
+### **Multi-Source Research**
+
+* Parallel content fetching (3x faster)  
+* Domain diversity filtering  
+* Comparative analysis across sources  
+* Progress tracking with success/failure reporting
+
+### **Smart Orchestration**
+
+* 7 research intent patterns (e.g., quick\_answer, deep\_research, comparison)  
+* Dynamic workflow generation based on context  
+* Parameter optimization (limits/depths automatically set for intent)  
+* Fallback strategies when tools fail  
+* LRU cache for insane speed (200 entries)
+
+### **Context Awareness**
+
+* Tracks known URLs (no redundant searches)  
+* Records failed tools (so the AI doesn't try the same thing twice)  
+* Adapts workflows based on research state
+
+## **Performance (Proof We Aren't Lying)**
+
+| Tool | Duration | Cost | Notes |
+| :---- | :---- | :---- | :---- |
+| search\_web | 1-2s | Low | DuckDuckGo API |
+| scrape\_url | 2-5s | Low | Single page fetch |
+| crawl\_docs | 10-60s | High | Multi-page crawling (big tasks take big time) |
+| deep\_dive | 5-15s | Medium | Parallel scraping |
+| suggest\_workflow | \<50ms | Minimal | LRU cached |
+
+## **Documentation**
+
+* REQUIREMENTS.md — Project scope and technical requirements  
+* ARCHITECTURE.md — Software architecture and design philosophy  
+* TOOLS.md — Comprehensive tool reference with examples
+
+## **Philosophy**
+
+The DevLens Philosophy: Make the hard stuff simple and fast.
+
+* **Composability** — Build with small, focused primitives that combine  
+* **Intelligence at the Edges** — Smart brain, reliable hands  
+* **Developer Velocity** — If setup takes more than 5 minutes, it's too much.  
+* **Token Economy** — Efficiency is currency.  
+* **Fail Explicitly** — We tell you when something breaks.  
+* **Context-Aware** — It remembers what happened.
+
+Read the full philosophy in ARCHITECTURE.md.
+
+## **Examples (In Action)**
+
+### **Quick Answer**
+
+Query: "What is FastAPI?"  
+\-\> suggest\_workflow thinks: quick\_answer (50%)  
+\-\> Workflow: search\_web(limit=3) \-\> scrape\_url  
+\-\> Result: Fast answer from the top source. Done.
+
+### **Deep Research**
+
+Query: "Comprehensive guide to mobile payments in Africa"  
+\-\> suggest\_workflow thinks: deep\_research (75%)  
+\-\> Workflow: search\_web(limit=10) \-\> deep\_dive(depth=10, parallel=true)  
+\-\> Result: Multi-source aggregated report, ready for planning.
+
+### **Documentation Learning**
+
+Query: "FastAPI documentation" \+ known\_url  
+\-\> suggest\_workflow thinks: documentation (80%)  
+\-\> Workflow: crawl\_docs(max\_pages=25) (skips search, goes straight to the docs)  
+\-\> Result: Complete documentation with TOC.
+
+### **Comparison Research**
+
+Query: "Compare FastAPI vs Flask"  
+\-\> suggest\_workflow thinks: comparison (65%)  
+\-\> Workflow: search\_web \-\> scrape\_url (parallel) \-\> compare\_sources  
+\-\> Result: Side-by-side analysis ready for your pull request.
+
+## **Contributing**
+
+Contributions welcome\! Keep it simple:
+
+* **Add, don't modify** — New tools over changing existing ones  
+* **Document why** — Explain your design choices  
+* **Test everything** — All tools must have validation tests  
+* **Keep it simple** — Clarity over cleverness
+
+## **License**
+
+MIT License \- See LICENSE for details.
+
+  
+Name origin: DevLens \= A developer's lens for viewing the web. Different tools are different lenses (wide-angle, macro, zoom), with smart auto-focus (orchestration) that picks the right lens automatically.
