@@ -45,13 +45,11 @@ The server exposes **Tools** that the LLM can call. Each tool is just a Python f
 |  +--------------------+  +-----------------------------+          |
 |  |   MCP Interface    |  |      Tool Registry (9)      |          |
 |  |   (fastmcp)        |  |                             |          |
-|  |                    |  |  CORE:                      |          |
-|  |  Handles:          |  |  - search_web               |          |
-|  |  - JSON-RPC msgs   |  |  - scrape_url               |          |
-|  |  - Tool routing    |  |  - deep_dive                |          |
-|  |  - Error handling  |  |  - crawl_docs               |          |
-|  |                    |  |  - summarize_page           |          |
-|  |                    |  |  ADVANCED: 🆕               |          |
+|  |                    |  |  - search_web               |          |
+|  |  Handles:          |  |  - scrape_url               |          |
+|  |  - JSON-RPC msgs   |  |  - deep_dive                |          |
+|  |  - Tool routing    |  |  - crawl_docs               |          |
+|  |  - Error handling  |  |  - summarize_page           |          |
 |  |                    |  |  - compare_sources          |          |
 |  |                    |  |  - find_related             |          |
 |  |                    |  |  - extract_links            |          |
@@ -75,7 +73,7 @@ The server exposes **Tools** that the LLM can call. Each tool is just a Python f
 
 ### Core Tools
 
-### 1. search_web ✨ Enhanced
+### 1. search_web (Enhanced)
 ```
 Input:  query="python MCP tutorial", limit=5, region="us-en"
 Output: [
@@ -85,7 +83,7 @@ Output: [
 ```
 Uses DDGS (migrated from duckduckgo-search). **New**: Region support, query normalization, quality filtering.
 
-### 2. scrape_url ✨ Enhanced
+### 2. scrape_url (Enhanced)
 ```
 Input:  url="https://docs.python.org/3/", include_metadata=true
 Output: 
@@ -101,7 +99,7 @@ Output:
 ```
 Uses crawl4ai + httpx fallback. **New**: Retry mechanism (exponential backoff), optional metadata (+41% more info).
 
-### 3. deep_dive ✨ Enhanced
+### 3. deep_dive (Enhanced)
 ```
 Input:  topic="MCP architecture", depth=3, parallel=true
 Output:
@@ -121,7 +119,7 @@ Output:
 ```
 Chains search + scrape. **New**: Parallel processing (3x faster), domain diversity filtering.
 
-### 4. crawl_docs ✨ Enhanced
+### 4. crawl_docs (Enhanced)
 ```
 Input:  root_url="https://fastapi.tiangolo.com/", max_pages=5, follow_external=false
 Output:
@@ -156,8 +154,6 @@ Output:
 Extracts structure without full content. Good for triage.
 
 ---
-
-### Advanced Tools 🆕
 
 ### 6. compare_sources
 ```
@@ -224,7 +220,7 @@ webdocx/
 │   │   ├── search.py   # search_web() - enhanced with region support
 │   │   ├── scraper.py  # scrape_url(), crawl_docs() - metadata extraction
 │   │   ├── research.py # deep_dive(), summarize_page() - parallel processing
-│   │   └── advanced.py # compare_sources(), find_related(), extract_links(), monitor_changes() 🆕
+│   │   └── advanced.py # compare_sources(), find_related(), extract_links(), monitor_changes()
 │   ├── adapters/
 │   │   ├── duckduckgo.py # DDGS search adapter (migrated from duckduckgo-search)
 │   │   └── scraper.py    # Crawl4AI/httpx with retry mechanism
@@ -233,9 +229,9 @@ webdocx/
 │       ├── document.py # Document
 │       └── errors.py   # WebDocxError, ScrapingError
 ├── pyproject.toml      # Updated: ddgs instead of duckduckgo-search
-├── test_benchmark.py   # Real validation tests (100% pass rate) 🆕
-├── .vscode/mcp.json    # VS Code workspace config 🆕
-├── launch_mcp.sh       # MCP launcher script 🆕
+├── test_benchmark.py   # Real validation tests (100% pass rate)
+├── .vscode/mcp.json    # VS Code workspace config
+├── launch_mcp.sh       # MCP launcher script
 └── README.md           # Updated with all features
 ```
 
