@@ -2,6 +2,10 @@
 
 This document describes how AI agents and LLMs should interact with WebDocx MCP tools.
 
+**12 tools in 3 layers**: Primitives (5), Composed (4), Meta (3)
+
+**Pro tip**: Use `get_server_docs` for inline guidance on capabilities, workflows, and design philosophy.
+
 ---
 
 ## Tool Usage Guidelines
@@ -325,6 +329,65 @@ This document describes how AI agents and LLMs should interact with WebDocx MCP 
 1. `search_web` — Find top result
 2. `scrape_url` — Get content
 3. Extract answer with source citation
+
+### Smart Orchestration Workflow
+1. `suggest_workflow` — Get auto-recommended workflow
+2. Follow suggested steps with optimized parameters
+3. Use `classify_research_intent` to validate understanding
+
+---
+
+## Meta Tools
+
+### get_server_docs
+
+**Purpose**: Access inline documentation about server capabilities.
+
+**When to use**:
+- Learning what tools are available
+- Understanding workflow patterns
+- Discovering best practices
+- Reading design philosophy
+
+**Topics**:
+- `overview` — Server architecture and capabilities
+- `tools` — Detailed tool reference
+- `workflows` — Common usage patterns
+- `orchestration` — Smart workflow system
+- `examples` — Real-world scenarios
+- `philosophy` — Developer mindset and design principles
+
+**Example**:
+```json
+{
+  "tool": "get_server_docs",
+  "args": {
+    "topic": "workflows"
+  }
+}
+```
+
+### suggest_workflow
+
+**Purpose**: Auto-recommend optimal tool sequence for a query.
+
+**When to use**:
+- Uncertain which tools to use
+- Complex research requiring multiple steps
+- Want optimized parameters
+
+**Returns**: Intent classification, workflow steps, parameters, cost estimates
+
+### classify_research_intent
+
+**Purpose**: Detect research goal from query.
+
+**When to use**:
+- Understanding user intent
+- Validating workflow suggestions
+- Debugging research approach
+
+**Returns**: Primary/secondary intents with confidence scores (quick_answer, deep_research, documentation, comparison, discovery, monitoring, validation)
 
 ---
 

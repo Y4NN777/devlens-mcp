@@ -6,7 +6,8 @@ Handles dynamic workflows, error recovery, and parameter optimization.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Dict, Any, Callable, Union
+from functools import lru_cache
+from typing import List, Optional, Dict, Any, Callable
 
 
 class ResearchIntent(Enum):
@@ -47,6 +48,7 @@ class ResearchContext:
     """Tracks research state and history."""
     known_urls: List[str] = field(default_factory=list)
     failed_tools: List[str] = field(default_factory=list)
+    failure_reasons: Dict[str, str] = field(default_factory=dict)
     found_sources: List[Dict[str, Any]] = field(default_factory=list)
     previous_results: Dict[str, Any] = field(default_factory=dict)
     user_constraints: Dict[str, Any] = field(default_factory=dict)
@@ -56,14 +58,19 @@ class ResearchContext:
         """Record successful tool execution."""
         self.previous_results[tool] = result
         
-    def mark_failed(self, tool: str) -> None:
-        """Mark tool as failed for this session."""
+    def mark_failed(self, tool: str, reason: str = "Unknown error") -> None:
+        """Mark tool as failed for this session with reason."""
         if tool not in self.failed_tools:
             self.failed_tools.append(tool)
+        self.failure_reasons[tool] = reason
     
     def has_urls(self) -> bool:
         """Check if we have any known URLs."""
         return len(self.known_urls) > 0
+    
+    def get_failure_reason(self, tool: str) -> Optional[str]:
+        """Get the reason why a tool failed."""
+        return self.failure_reasons.get(tool)
 
 
 @dataclass
@@ -76,6 +83,14 @@ class WorkflowStep:
     fallback_step: Optional['WorkflowStep'] = None
     parallel_group: Optional[int] = None  # For parallel execution
     skip_if: Optional[Callable[[ResearchContext], bool]] = None
+    
+    def validate_inputs(self, actual_inputs: Dict[str, Any]) -> bool:
+        """Check if all required inputs are provided."""
+        return all(
+            key in actual_inputs and actual_inputs[key] is not None 
+            for key in self.required_inputs.keys() 
+            if key != ""  # Skip placeholder keys
+        )
 
 
 # Tool registry with detailed metadata
@@ -150,8 +165,8 @@ TOOL_REGISTRY = {
         resource_cost="high"
     ),
     
-    "research_topic": ToolPurpose(
-        name="research_topic",
+    "deep_dive": ToolPurpose(
+        name="deep_dive",
         purpose="Multi-source research with parallel fetching",
         use_cases=[
             "Thorough topic research",
@@ -359,18 +374,18 @@ INTENT_PATTERNS = {
 }
 
 
-def classify_intent(query: str, context: Optional[ResearchContext] = None) -> List[IntentScore]:
-    """
-    Classify user's research intent from query with confidence scores.
+@lru_cache(maxsize=200)
+def _classify_intent_cached(query_lower: str, has_urls: bool, search_attempts: int) -> tuple:
+    """Cached intent classification for identical queries.
     
     Args:
-        query: User's research query
-        context: Optional research context for additional signals
+        query_lower: Lowercase query string
+        has_urls: Whether context has URLs
+        search_attempts: Number of search attempts
         
     Returns:
-        List of IntentScore objects ranked by confidence
+        Tuple of (intent_type, confidence, keywords, reasons) for caching
     """
-    query_lower = query.lower()
     scores = []
     
     # Check each intent pattern
@@ -384,32 +399,63 @@ def classify_intent(query: str, context: Optional[ResearchContext] = None) -> Li
             confidence = min(0.95, base_confidence + priority_boost)
             
             # Adjust based on context
-            if context:
-                if intent == ResearchIntent.QUICK_ANSWER and context.search_attempts > 2:
-                    confidence *= 0.5  # Probably need deeper research
-                elif intent == ResearchIntent.DEEP_RESEARCH and context.has_urls():
-                    confidence *= 1.2  # We have starting points
+            if intent == ResearchIntent.QUICK_ANSWER and search_attempts > 2:
+                confidence *= 0.5  # Probably need deeper research
+            elif intent == ResearchIntent.DEEP_RESEARCH and has_urls:
+                confidence *= 1.2  # We have starting points
             
             reasons = [
                 f"Matched keywords: {', '.join(matched_keywords)}",
                 f"Priority level: {pattern['priority']}/10"
             ]
             
-            scores.append(IntentScore(
-                intent=intent,
-                confidence=confidence,
-                reasons=reasons,
-                keywords_matched=matched_keywords
+            scores.append((
+                intent.value,
+                confidence,
+                tuple(matched_keywords),
+                tuple(reasons)
             ))
     
-    # Add default quick answer if nothing matched
+    # Add default if nothing matched
     if not scores:
-        scores.append(IntentScore(
-            intent=ResearchIntent.QUICK_ANSWER,
-            confidence=0.5,
-            reasons=["Default fallback - no specific intent detected"],
-            keywords_matched=[]
+        scores.append((
+            ResearchIntent.QUICK_ANSWER.value,
+            0.5,
+            tuple(),
+            ("Default fallback - no specific intent detected",)
         ))
+    
+    return tuple(scores)
+
+
+def classify_intent(query: str, context: Optional[ResearchContext] = None) -> List[IntentScore]:
+    """
+    Classify user's research intent from query with confidence scores.
+    
+    Args:
+        query: User's research query
+        context: Optional research context for additional signals
+        
+    Returns:
+        List of IntentScore objects ranked by confidence
+    """
+    query_lower = query.lower()
+    has_urls = context.has_urls() if context else False
+    search_attempts = context.search_attempts if context else 0
+    
+    # Use cached classification
+    cached_scores = _classify_intent_cached(query_lower, has_urls, search_attempts)
+    
+    # Convert back to IntentScore objects
+    scores = [
+        IntentScore(
+            intent=ResearchIntent(intent_value),
+            confidence=confidence,
+            reasons=list(reasons),
+            keywords_matched=list(keywords)
+        )
+        for intent_value, confidence, keywords, reasons in cached_scores
+    ]
     
     # Filter out conflicting intents (keep highest confidence)
     filtered_scores = []
@@ -465,15 +511,15 @@ def suggest_parameters(
         if context.search_attempts > 1:
             params["limit"] = min(15, params["limit"] * 2)
     
-    elif tool_name == "research_topic":
+    elif tool_name == "deep_dive":
         if intent == ResearchIntent.DEEP_RESEARCH:
-            params["depth"] = "comprehensive"
+            params["depth"] = 10
             params["parallel"] = True
         elif intent == ResearchIntent.QUICK_ANSWER:
-            params["depth"] = "basic"
+            params["depth"] = 3
             params["parallel"] = False
         else:
-            params["depth"] = "moderate"
+            params["depth"] = 5
             params["parallel"] = True
     
     elif tool_name == "find_related":
@@ -531,9 +577,9 @@ def build_dynamic_workflow(
                 purpose="Get content from best result",
                 required_inputs={"url": ""},
                 fallback_step=WorkflowStep(
-                    tool="research_topic",
+                    tool="deep_dive",
                     purpose="Multi-source fallback",
-                    required_inputs={"topic": "", "depth": "basic"}
+                    required_inputs={"topic": "", "depth": 3}
                 )
             ))
     
@@ -547,9 +593,9 @@ def build_dynamic_workflow(
             ))
         
         workflow.append(WorkflowStep(
-            tool="research_topic",
+            tool="deep_dive",
             purpose="Comprehensive multi-source research",
-            required_inputs={"topic": "", "depth": "comprehensive", "parallel": True}
+            required_inputs={"topic": "", "depth": 10, "parallel": True}
         ))
     
     # DOCUMENTATION workflow
@@ -724,6 +770,7 @@ def suggest_tools(
         "context_notes": {
             "has_known_urls": context.has_urls(),
             "failed_tools": context.failed_tools,
+            "failure_reasons": context.failure_reasons,
             "search_attempts": context.search_attempts
         },
         "explanation": (
@@ -740,7 +787,8 @@ def update_context_from_result(
     context: ResearchContext,
     tool: str,
     result: Any,
-    success: bool
+    success: bool,
+    error_message: str = ""
 ) -> ResearchContext:
     """
     Update research context based on tool execution result.
@@ -750,6 +798,7 @@ def update_context_from_result(
         tool: Tool that was executed
         result: Result from tool execution
         success: Whether execution was successful
+        error_message: Error message if execution failed
         
     Returns:
         Updated research context
@@ -765,7 +814,7 @@ def update_context_from_result(
                         context.known_urls.append(item["url"])
             context.search_attempts += 1
     else:
-        context.mark_failed(tool)
+        context.mark_failed(tool, error_message or "Unknown error")
     
     return context
 
@@ -788,3 +837,10 @@ if __name__ == "__main__":
     print("Comparison Query:", result["explanation"])
     for step in result["workflow"]:
         print(f"  Step {step['step']}: {step['tool']} - {step['purpose']}")
+    print()
+    
+    # Example 4: Context with failures
+    ctx = ResearchContext()
+    ctx = update_context_from_result(ctx, "search_web", [], False, "Network timeout")
+    result = suggest_tools("Python tutorials", context=ctx)
+    print("With Failed Tool:", result["context_notes"])

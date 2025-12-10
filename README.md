@@ -1,10 +1,16 @@
 # WebDocx MCP
 
-MCP server for web access—search, scrape, crawl. Nine tools to gather and analyze web content from any MCP client.
+Production-grade MCP server for intelligent web research. Built with developer velocity and LLM efficiency in mind.
+
+Twelve tools in three layers: composable primitives, workflow combinators, and smart orchestration.
 
 ## Why
 
-Your AI assistant can't browse the web. WebDocx fixes that through MCP protocol. Works with Claude Desktop, VS Code Copilot, or any MCP-compatible client.
+Your AI assistant can't browse the web. WebDocx fixes that through MCP protocol. 
+
+**Developer-first design**: Small focused tools that combine powerfully, smart auto-orchestration to reduce cognitive load, Markdown output optimized for token economy, and zero configuration to start.
+
+Works with Claude Desktop, VS Code Copilot, or any MCP-compatible client.
 
 ## Tools
 
@@ -23,7 +29,8 @@ Your AI assistant can't browse the web. WebDocx fixes that through MCP protocol.
 
 ### Smart Orchestration
 **suggest_workflow** — Auto-recommend optimal research workflow  
-**classify_research_intent** — Detect research goal with confidence scores
+**classify_research_intent** — Detect research goal with confidence scores  
+**get_server_docs** — Inline documentation (overview, tools, workflows, philosophy)
 
 ## Setup
 
