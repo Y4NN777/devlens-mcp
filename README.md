@@ -1,10 +1,10 @@
 # WebDocx MCP
 
-A simple MCP server built to give my LLMs and AI agents real-time web access. Search, scrape, crawl docs—all without leaving my workspace.
+Model Context Protocol (MCP) server providing real-time web access for LLMs and AI agents. Search, scrape, and crawl documentation—all from your workspace.
 
 ## Why?
 
-I got tired of copy-pasting URLs and manually feeding web content to Claude or leaving my editor to read docs and understand docs ( favorite pain points ). This server lets the LLM fetch what it needs directly based on given prompts
+Stop copy-pasting URLs and manually feeding web content to your AI assistant. WebDocx gives any MCP-compatible client (Claude Desktop, VS Code Copilot, custom tools) direct web access through a standardized protocol.
 
 
 ## Tools
@@ -29,15 +29,19 @@ I got tired of copy-pasting URLs and manually feeding web content to Claude or l
 ## Setup
 
 ```bash
-# Install
+# Install dependencies
 uv sync
 
-# Run
+# Run server (STDIO mode)
 uv run python -m webdocx.server
+
+# Test locally
+uv run python test_benchmark.py
 ```
 
-Add to Claude Desktop config:
+### MCP Client Configuration
 
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json` or `~/.config/claude/claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -50,12 +54,26 @@ Add to Claude Desktop config:
 }
 ```
 
+**VS Code Copilot** (`.vscode/mcp.json` in workspace):
+```json
+{
+  "servers": {
+    "webdocx": {
+      "command": "/path/to/webdocx-mcp/launch_mcp.sh"
+    }
+  }
+}
+```
+
+**Other MCP Clients**: Use STDIO transport with `uv run python -m webdocx.server`
+
 ## Stack
 
-- `fastmcp` — MCP server
-- `crawl4ai` — Web scraping (handles JS)
-- `duckduckgo-search` — Search
-- `pydantic` — Validation
+- `fastmcp` — MCP server framework
+- `crawl4ai` — Web scraping with JavaScript support
+- `ddgs` — DuckDuckGo search (privacy-focused)
+- `httpx` — HTTP client with fallback
+- `pydantic` — Data validation
 
 ## Features
 
