@@ -1,5 +1,5 @@
 [project]
-name = "devlens-mcp"
+name = "devlens"
 version = "0.1.0"
 description = "MCP server for web search, scraping, and documentation gathering"
 authors = [
@@ -11,6 +11,7 @@ dependencies = [
     "fastmcp",
     "crawl4ai",
     "ddgs",
+    "duckduckgo-search",
     "httpx",
     "beautifulsoup4",
     "readability-lxml",
