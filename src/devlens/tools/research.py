@@ -1,7 +1,7 @@
 """Research tool implementations."""
 
-from webdocx.adapters.duckduckgo import DDGAdapter
-from webdocx.adapters.scraper import ScraperAdapter
+from devlens.adapters.duckduckgo import DDGAdapter
+from devlens.adapters.scraper import ScraperAdapter
 
 # Shared adapter instances
 _ddg = DDGAdapter()

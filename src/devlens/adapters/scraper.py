@@ -8,8 +8,8 @@ import httpx
 from bs4 import BeautifulSoup
 from readability import Document as ReadabilityDocument
 
-from webdocx.models.document import Document, PageSummary, Section
-from webdocx.models.errors import ScrapingError
+from devlens.models.document import Document, PageSummary, Section
+from devlens.models.errors import ScrapingError
 
 
 class ScraperAdapter:

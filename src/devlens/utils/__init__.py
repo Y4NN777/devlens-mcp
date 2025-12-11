@@ -1,4 +1,4 @@
-"""Utility functions for webdocx."""
+"""Utility functions for devlens."""
 
 from .orchestrator import (
     classify_intent,

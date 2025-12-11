@@ -2,8 +2,8 @@
 
 import asyncio
 
-from webdocx.adapters.scraper import ScraperAdapter
-from webdocx.models.errors import CrawlError
+from devlens.adapters.scraper import ScraperAdapter
+from devlens.models.errors import CrawlError
 
 # Shared adapter instance
 _adapter = ScraperAdapter()

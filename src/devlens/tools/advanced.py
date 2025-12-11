@@ -4,9 +4,9 @@ import asyncio
 from collections import Counter
 from urllib.parse import urlparse
 
-from webdocx.adapters.duckduckgo import DDGAdapter
-from webdocx.adapters.scraper import ScraperAdapter
-from webdocx.models.errors import SearchError, ScrapingError
+from devlens.adapters.duckduckgo import DDGAdapter
+from devlens.adapters.scraper import ScraperAdapter
+from devlens.models.errors import SearchError, ScrapingError
 
 # Shared adapter instances
 _ddg = DDGAdapter()

@@ -5,16 +5,16 @@ An MCP server for web search, scraping, and documentation gathering.
 
 from fastmcp import FastMCP
 
-from webdocx.tools.search import search_web
-from webdocx.tools.scraper import scrape_url, crawl_docs
-from webdocx.tools.research import deep_dive, summarize_page
-from webdocx.tools.advanced import (
+from devlens.tools.search import search_web
+from devlens.tools.scraper import scrape_url, crawl_docs
+from devlens.tools.research import deep_dive, summarize_page
+from devlens.tools.advanced import (
     compare_sources,
     find_related,
     extract_links,
     monitor_changes,
 )
-from webdocx.utils.orchestrator import (
+from devlens.utils.orchestrator import (
     suggest_tools,
     classify_intent,
     ResearchContext,

@@ -1,10 +1,10 @@
 """DuckDuckGo search adapter."""
 
 import asyncio
-from ddgs import DDGS
+from duckduckgo import DDGS
 
-from webdocx.models.search import SearchResult
-from webdocx.models.errors import SearchError
+from devlens.models.search import SearchResult
+from devlens.models.errors import SearchError
 
 
 class DDGAdapter:

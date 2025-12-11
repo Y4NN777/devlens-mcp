@@ -2,8 +2,8 @@
 
 import re
 from functools import lru_cache
-from webdocx.adapters.duckduckgo import DDGAdapter
-from webdocx.models.errors import SearchError
+from devlens.adapters.duckduckgo import DDGAdapter
+from devlens.models.errors import SearchError
 
 # Shared adapter instance
 _adapter = DDGAdapter()

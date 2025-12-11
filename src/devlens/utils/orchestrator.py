@@ -1,5 +1,5 @@
 """
-Smart tool orchestration for webdocx MCP server.
+Smart tool orchestration for devlens MCP server.
 Automatically selects the right tools based on user intent and research workflow.
 Handles dynamic workflows, error recovery, and parameter optimization.
 """
