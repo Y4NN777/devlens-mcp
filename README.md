@@ -2,13 +2,13 @@
 
 **The MCP Server I Built to Kill Alt-Tab. Clean, fast web context, right in your IDE.**
 
-Like most developers, I was sick of context-switching between VS Code and the browser for documentation. That was my core frustration. So, I built DevLens: an **open-source** MCP server because I was curious and wanted a **custom solution** that was more efficient than existing tools.
+Like most developers, I was sick of context-switching between VS Code and the browser for documentation. That was my core frustration. So, I built DevLens: an **open-source** MCP server because I was curious and wanted a **custom solution** that was more lightweight than existing tools.
 
 The goal is simple: give your workspace AI (Copilot, Claude, etc.) web access that is **structured** and **token-efficient**. DevLens delivers twelve specialized tools via a three-layered architecture built for power and easy deployment.
 
 ## **What is MCP and DevLens's Role?**
 
-The **MCP (Model Context Protocol)** is the standard that lets your AI assistant call external tools (web search, scraping) to act beyond its training data. It gives the AI real-world power.
+The **MCP (Model Context Protocol)** is the standard that lets your AI assistant call external tools (web search, scraping) to act beyond its training data. It gives the AI real-world and real-time ..power.
 
 **DevLens's Role** is to be the most efficient implementation for web research. DevLens handles the intelligence (Smart Orchestration) and formats the results into clean Markdown. This ensures your workspace AI receives the precise context it needs without the clutter or high token cost of raw HTML.
 
